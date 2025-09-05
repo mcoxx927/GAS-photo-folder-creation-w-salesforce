@@ -11,6 +11,7 @@ function doGet(e) {
   try {
     const address = e.parameter.address;
     const contactId = e.parameter.contactId;
+    const repEmail = e.parameter.repEmail;
     
     // Validate required parameters
     if (!address || !contactId) {
@@ -24,6 +25,13 @@ function doGet(e) {
     
     // Create the folder structure
     const result = createPhotoFolder(address, contactId);
+    
+    // Send email if rep email is provided
+    if (repEmail && result.success) {
+      sendPhotoUploadEmail(repEmail, address, result.photosFolderUrl);
+      result.emailSent = true;
+      result.emailTo = repEmail;
+    }
     
     return ContentService
       .createTextOutput(JSON.stringify(result))
@@ -58,27 +66,19 @@ function createPhotoFolder(address, contactId) {
     // Create Photos subfolder
     const photosFolder = propertyFolder.createFolder("Photos");
     
-    // Set permissions - make photos folder publicly writable
+    // Set permissions using DriveApp (basic sharing)
     try {
-      Drive.Permissions.insert({
-        type: 'anyone',
-        role: 'writer',
-        withLink: true
-      }, photosFolder.getId(), {
-        sendNotificationEmails: false
-      });
+      // Make photos folder publicly accessible
+      photosFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
+      Logger.log('✅ Photos folder set to public edit access');
       
-      // Set property folder to domain access
-      Drive.Permissions.insert({
-        type: 'domain',
-        role: 'writer',
-        value: DOMAIN_NAME,
-        withLink: true
-      }, propertyFolder.getId(), {
-        sendNotificationEmails: false
-      });
+      // Make property folder accessible to domain users
+      propertyFolder.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.EDIT);
+      Logger.log('✅ Property folder set to domain edit access');
+      
     } catch (permError) {
-      Logger.log('⚠️ Permission setting failed (Drive API not enabled?): ' + permError.toString());
+      Logger.log('⚠️ Permission setting failed: ' + permError.toString());
+      Logger.log('📁 Folders created successfully but using default permissions');
       // Continue without setting permissions - folders will still work, just with default permissions
     }
     
@@ -113,6 +113,39 @@ function logFolderCreation(result) {
     Logger.log(`📁 Folder URL: ${result.photosFolderUrl}`);
   } catch (error) {
     Logger.log('Logging error: ' + error.toString());
+  }
+}
+
+/**
+ * Send photo upload email to the rep
+ */
+function sendPhotoUploadEmail(repEmail, address, photoFolderUrl) {
+  try {
+    const subject = `Upload Photos for Property: ${address}`;
+    const bodyText = `Hi there,
+
+Thanks for creating the photo folder for:
+
+📍 ${address}
+
+Please upload all property photos (30–50 recommended) using the folder below:
+
+📁 Upload Link: ${photoFolderUrl}
+
+This folder is public for easy uploading. Let us know if you need help.
+
+– Quick Fix Real Estate Team`;
+
+    MailApp.sendEmail({
+      to: repEmail,
+      subject: subject,
+      body: bodyText
+    });
+
+    Logger.log(`📧 Photo upload email sent to ${repEmail} for ${address}`);
+  } catch (error) {
+    Logger.log(`❌ Failed to send email to ${repEmail}: ${error.toString()}`);
+    throw error;
   }
 }
 

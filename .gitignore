@@ -1,0 +1,49 @@
+# Google Apps Script Configuration Files
+config.gs
+simpleConfig.gs
+
+# Any files containing API keys or sensitive data
+*config*.gs
+*keys*.gs
+*secrets*.gs
+*credentials*.gs
+
+# Environment-specific files
+.env
+.env.local
+.env.production
+
+# Google Apps Script specific
+.clasp.json
+.claspignore
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+
+# Any files with sensitive IDs or URLs
+*PRIVATE*
+*SECRET*

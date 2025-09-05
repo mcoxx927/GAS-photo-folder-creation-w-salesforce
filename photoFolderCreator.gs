@@ -1,6 +1,7 @@
 // Simplified Photo Folder Creator
-// Configuration
+// Configuration - these should match your simpleConfig.gs values
 const PARENT_FOLDER_ID = '1lgDlrusiSDXV4DG15XsB1MMmo6FoVHXo'; // Your parent folder for property folders
+const DOMAIN_NAME = 'quickfixrealestate.com'; // Your company domain for folder permissions
 
 /**
  * Web app entry point - handles GET requests
@@ -58,23 +59,28 @@ function createPhotoFolder(address, contactId) {
     const photosFolder = propertyFolder.createFolder("Photos");
     
     // Set permissions - make photos folder publicly writable
-    Drive.Permissions.insert({
-      type: 'anyone',
-      role: 'writer',
-      withLink: true
-    }, photosFolder.getId(), {
-      sendNotificationEmails: false
-    });
-    
-    // Set property folder to domain access
-    Drive.Permissions.insert({
-      type: 'domain',
-      role: 'writer',
-      value: 'quickfixrealestate.com',
-      withLink: true
-    }, propertyFolder.getId(), {
-      sendNotificationEmails: false
-    });
+    try {
+      Drive.Permissions.insert({
+        type: 'anyone',
+        role: 'writer',
+        withLink: true
+      }, photosFolder.getId(), {
+        sendNotificationEmails: false
+      });
+      
+      // Set property folder to domain access
+      Drive.Permissions.insert({
+        type: 'domain',
+        role: 'writer',
+        value: DOMAIN_NAME,
+        withLink: true
+      }, propertyFolder.getId(), {
+        sendNotificationEmails: false
+      });
+    } catch (permError) {
+      Logger.log('⚠️ Permission setting failed (Drive API not enabled?): ' + permError.toString());
+      // Continue without setting permissions - folders will still work, just with default permissions
+    }
     
     const result = {
       success: true,

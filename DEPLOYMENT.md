@@ -15,8 +15,9 @@
    - This enables the advanced Drive permissions needed
 
 3. **Configure Settings**
+   - Copy `simpleConfig.template.gs` to `simpleConfig.gs`
    - Update `PARENT_FOLDER_ID` in `simpleConfig.gs` with your Google Drive folder ID
-   - Update `DOMAIN_NAME` if different from quickfixrealestate.com
+   - Update `DOMAIN_NAME` with your company domain
 
 4. **Test Configuration**
    - Run the `testConfig()` function to verify folder access
